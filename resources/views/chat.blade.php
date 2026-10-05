@@ -675,12 +675,12 @@
               id="chat-form"
               onsubmit="handleSendMessage(event)"
               data-pencil-name="Input Box"
-              class="w-full flex flex-row gap-1.5 sm:gap-2 p-1.5 sm:p-2 items-center bg-[#FFFFFF] dark:bg-[#161618] border border-[#E5E7EB] dark:border-[#2C2C2C] rounded-2xl focus-within:border-neutral-400 dark:focus-within:border-neutral-600 focus-within:ring-2 focus-within:ring-neutral-400/20 shadow-xs transition-all duration-200"
+              class="w-full flex flex-row gap-1.5 sm:gap-2 p-1.5 sm:p-2 items-end bg-[#FFFFFF] dark:bg-[#161618] border border-[#E5E7EB] dark:border-[#2C2C2C] rounded-2xl focus-within:border-neutral-400 dark:focus-within:border-neutral-600 focus-within:ring-2 focus-within:ring-neutral-400/20 shadow-xs transition-all duration-200"
             >
               <!-- Attach Button -->
               <button
                 type="button"
-                class="w-8 h-8 sm:w-9 sm:h-9 shrink-0 flex items-center justify-center rounded-xl text-[#6B7280] dark:text-[#B4B4B4] hover:text-[#111111] dark:hover:text-[#ECECEC] hover:bg-neutral-100 dark:hover:bg-[#222222] active:scale-90 transition-all cursor-pointer p-0.5"
+                class="w-8 h-8 sm:w-9 sm:h-9 shrink-0 flex items-center justify-center rounded-xl text-[#6B7280] dark:text-[#B4B4B4] hover:text-[#111111] dark:hover:text-[#ECECEC] hover:bg-neutral-100 dark:hover:bg-[#222222] active:scale-90 transition-all cursor-pointer p-0.5 mb-0.5"
                 title="Attach file"
               >
                 <svg
@@ -695,21 +695,20 @@
                 </svg>
               </button>
 
-              <!-- Text Input -->
-              <input
+              <!-- Textarea Input (Supports Shift+Enter for multiline) -->
+              <textarea
                 id="message-input"
-                type="text"
-                autocomplete="off"
+                rows="1"
                 placeholder="Message AI..."
                 data-pencil-name="Placeholder"
-                class="flex-1 min-w-0 bg-transparent border-0 outline-none px-2 py-1 text-[15px] sm:text-[14px] text-[#111111] dark:text-[#ECECEC] placeholder:text-[#6B7280] dark:placeholder:text-[#B4B4B4] focus:ring-0 focus:outline-none"
-              />
+                class="flex-1 min-w-0 bg-transparent border-0 outline-none px-2 py-1.5 text-[15px] sm:text-[14px] text-[#111111] dark:text-[#ECECEC] placeholder:text-[#6B7280] dark:placeholder:text-[#B4B4B4] focus:ring-0 focus:outline-none resize-none max-h-36 overflow-y-auto leading-relaxed chat-scroll"
+              ></textarea>
 
               <!-- Mic Button -->
               <button
                 type="button"
                 id="mic-button"
-                class="w-8 h-8 sm:w-9 sm:h-9 shrink-0 flex items-center justify-center rounded-xl text-[#6B7280] dark:text-[#B4B4B4] hover:text-[#111111] dark:hover:text-[#ECECEC] hover:bg-neutral-100 dark:hover:bg-[#222222] active:scale-90 transition-all cursor-pointer p-0.5"
+                class="w-8 h-8 sm:w-9 sm:h-9 shrink-0 flex items-center justify-center rounded-xl text-[#6B7280] dark:text-[#B4B4B4] hover:text-[#111111] dark:hover:text-[#ECECEC] hover:bg-neutral-100 dark:hover:bg-[#222222] active:scale-90 transition-all cursor-pointer p-0.5 mb-0.5"
                 title="Voice input"
               >
                 <svg
@@ -729,7 +728,7 @@
                 type="submit"
                 id="send-button"
                 data-pencil-name="Submit Button"
-                class="w-8 h-8 sm:w-9 sm:h-9 shrink-0 flex items-center justify-center bg-[#111111] dark:bg-[#FFFFFF] hover:bg-neutral-800 dark:hover:bg-neutral-200 text-[#FFFFFF] dark:text-[#111111] rounded-xl active:scale-90 shadow-xs transition-all duration-150 cursor-pointer select-none"
+                class="w-8 h-8 sm:w-9 sm:h-9 shrink-0 flex items-center justify-center bg-[#111111] dark:bg-[#FFFFFF] hover:bg-neutral-800 dark:hover:bg-neutral-200 text-[#FFFFFF] dark:text-[#111111] rounded-xl active:scale-90 shadow-xs transition-all duration-150 cursor-pointer select-none mb-0.5"
                 title="Send message"
               >
                 <svg
@@ -750,7 +749,7 @@
               data-pencil-name="Hint"
               class="w-full text-[11px] sm:text-[12px] leading-tight text-[#6B7280] dark:text-[#B4B4B4] font-normal text-center select-none"
             >
-              AI can make mistakes. Check important info. • Enter to send
+              AI can make mistakes. Check important info. • Enter to send, Shift+Enter for newline
             </div>
           </div>
         </div>
@@ -1742,6 +1741,9 @@
       session.messages.push(thinkingMsg);
 
       messageInput.value = '';
+      if (messageInput.style) {
+        messageInput.style.height = 'auto';
+      }
       renderSessions();
       renderMessages();
 
@@ -1853,6 +1855,36 @@
     }
 
     // Event Listeners
+    function autoResizeTextarea() {
+      if (!messageInput) return;
+      messageInput.style.height = 'auto';
+      messageInput.style.height = Math.min(messageInput.scrollHeight, 144) + 'px';
+    }
+
+    if (messageInput) {
+      messageInput.addEventListener('input', autoResizeTextarea);
+
+      messageInput.addEventListener('keydown', (e) => {
+        // Shift + Enter: trigger enter (kebawah / newline)
+        if (e.key === 'Enter' && e.shiftKey) {
+          // Default behavior inserts newline into textarea; resize height on next frame
+          setTimeout(autoResizeTextarea, 0);
+          return;
+        }
+
+        // Enter without Shift: trigger submit / send message
+        if (e.key === 'Enter' && !e.shiftKey && !e.isComposing) {
+          e.preventDefault();
+          const chatForm = document.getElementById('chat-form');
+          if (chatForm) {
+            chatForm.requestSubmit();
+          } else {
+            handleSendMessage(e);
+          }
+        }
+      });
+    }
+
     if (searchToggleBtn) {
       searchToggleBtn.addEventListener('click', () => {
         toggleSearchMode();
