@@ -35,4 +35,11 @@ return [
         ],
     ],
 
+    'tokenportal' => [
+        'api_key' => env('TOKENPORTAL_API_KEY'),
+        'base_url' => env('TOKENPORTAL_BASE_URL', 'https://tokenportal.id/v1'),
+        'default_model' => env('TOKENPORTAL_DEFAULT_MODEL', 'kimi-k27-code'),
+        'timeout' => (int) env('TOKENPORTAL_TIMEOUT', 90),
+    ],
+
 ];
